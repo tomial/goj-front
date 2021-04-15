@@ -9,6 +9,7 @@ import {
   MenuItem,
   Divider,
   Drawer,
+  Link,
   List,
   ListItem,
   ListItemText,
@@ -17,7 +18,7 @@ import {
   Tab,
   Hidden,
   IconButton,
-  Link,
+  ButtonGroup,
 } from '@material-ui/core'
 import { useState, Fragment } from 'react'
 import AccountCircleIcon from '@material-ui/icons/AccountCircle'
@@ -27,8 +28,10 @@ import CreateRoundedIcon from '@material-ui/icons/CreateRounded'
 import ForumRoundedIcon from '@material-ui/icons/ForumRounded'
 import MenuBookRoundedIcon from '@material-ui/icons/MenuBookRounded'
 import PowerSettingsNewRoundedIcon from '@material-ui/icons/PowerSettingsNewRounded'
+import PersonAddRoundedIcon from '@material-ui/icons/PersonAddRounded'
 import { logIn, logOut, switchTab } from '../actions'
 import { connect } from 'react-redux'
+import { Link as RouterLink } from 'react-router-dom'
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -46,10 +49,11 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const NavBar = ({ loggedIn, tabSelected, dispatch }) => {
+const NavBar = ({ loggedIn, dispatch }) => {
   const classes = useStyles()
   const [drawerAnchor, setDrawerAnchor] = useState(null)
   const [userMenuAnchor, setUserMenuAnchor] = useState(null)
+  const [tabSelected, setTabSelected] = useState('problems')
 
   // 点击用户菜单
   const handleUserButtonClick = event => {
@@ -67,7 +71,7 @@ const NavBar = ({ loggedIn, tabSelected, dispatch }) => {
   }
 
   const handleTabSelected = (event, newValue) => {
-    dispatch(switchTab(newValue))
+    setTabSelected(newValue)
   }
 
   const toggleDrawer = open => event => {
@@ -89,8 +93,16 @@ const NavBar = ({ loggedIn, tabSelected, dispatch }) => {
     <AppBar position='static'>
       <Toolbar variant='dense'>
         <Box className={classes.title}>
-          <Typography variant='h6'>
-            <Link href='#' color='inherit' underline='none'>
+          <Typography
+            variant='h6'
+            onClick={() => handleTabSelected(null, null)}
+          >
+            <Link
+              component={RouterLink}
+              to='/'
+              color='inherit'
+              underline='none'
+            >
               GOJ
             </Link>
           </Typography>
@@ -99,9 +111,27 @@ const NavBar = ({ loggedIn, tabSelected, dispatch }) => {
         <Hidden xsDown>
           <Box className={classes.menu}>
             <Tabs value={tabSelected} onChange={handleTabSelected}>
-              <Tab label='题目' icon={<MenuBookRoundedIcon />} />
-              <Tab label='社区' icon={<ForumRoundedIcon />} />
-              <Tab label='题解' icon={<CreateRoundedIcon />} />
+              <Tab
+                value='problems'
+                label='题目'
+                icon={<MenuBookRoundedIcon />}
+                component={RouterLink}
+                to='/problems'
+              />
+              <Tab
+                value='community'
+                label='社区'
+                icon={<ForumRoundedIcon />}
+                component={RouterLink}
+                to='/community'
+              />
+              <Tab
+                value='solutions'
+                label='题解'
+                icon={<CreateRoundedIcon />}
+                component={RouterLink}
+                to='/solutions'
+              />
             </Tabs>
           </Box>
 
@@ -109,15 +139,32 @@ const NavBar = ({ loggedIn, tabSelected, dispatch }) => {
             display={loggedIn ? 'none' : 'flex'}
             className={classes.userButton}
           >
-            <Button
-              color='inherit'
-              size='large'
-              onClick={() => {
-                dispatch(logIn)
-              }}
-            >
-              登录
-            </Button>
+            <ButtonGroup color='primary' size='large' variant='contained'>
+              <Button
+                onClick={() => {
+                  dispatch(logIn)
+                }}
+              >
+                <Link
+                  component={RouterLink}
+                  to='/login'
+                  color='inherit'
+                  underline='none'
+                >
+                  登录
+                </Link>
+              </Button>
+              <Button>
+                <Link
+                  component={RouterLink}
+                  to='/register'
+                  color='inherit'
+                  underline='none'
+                >
+                  注册
+                </Link>
+              </Button>
+            </ButtonGroup>
           </Box>
 
           <Box
@@ -159,26 +206,62 @@ const NavBar = ({ loggedIn, tabSelected, dispatch }) => {
               onClose={toggleDrawer(false)}
             >
               <List>
-                <ListItem button key='drawerHome'>
+                <ListItem
+                  button
+                  component={RouterLink}
+                  to='/'
+                  key='drawerHome'
+                  onClick={() => {
+                    toggleDrawer(false)
+                    handleTabSelected(null, null)
+                  }}
+                >
                   <ListItemIcon>
                     <HomeRoundedIcon />
                   </ListItemIcon>
                   <ListItemText primary={'首页'} />
                 </ListItem>
                 <Divider />
-                <ListItem button key='drawerProblems'>
+                <ListItem
+                  button
+                  key='drawerProblems'
+                  component={RouterLink}
+                  to='/problems'
+                  onClick={() => {
+                    toggleDrawer(false)
+                    handleTabSelected(null, 'problems')
+                  }}
+                >
                   <ListItemIcon>
                     <MenuBookRoundedIcon />
                   </ListItemIcon>
                   <ListItemText primary={'题目'} />
                 </ListItem>
-                <ListItem button key='drawerCommunity'>
+                <ListItem
+                  button
+                  key='drawerCommunity'
+                  component={RouterLink}
+                  to='/community'
+                  onClick={() => {
+                    toggleDrawer(false)
+                    handleTabSelected(null, 'community')
+                  }}
+                >
                   <ListItemIcon>
                     <ForumRoundedIcon />
                   </ListItemIcon>
                   <ListItemText primary={'社区'} />
                 </ListItem>
-                <ListItem button key='drawerSolutions'>
+                <ListItem
+                  button
+                  key='drawerSolutions'
+                  component={RouterLink}
+                  to='/solutions'
+                  onClick={() => {
+                    toggleDrawer(false)
+                    handleTabSelected(null, 'solutions')
+                  }}
+                >
                   <ListItemIcon>
                     <CreateRoundedIcon />
                   </ListItemIcon>
@@ -198,16 +281,30 @@ const NavBar = ({ loggedIn, tabSelected, dispatch }) => {
                     <ListItemText primary={'用户'} />
                   </ListItem>
                 ) : (
-                  <ListItem
-                    button
-                    key='drawerLogin'
-                    onClick={() => dispatch(logIn)}
-                  >
-                    <ListItemIcon>
-                      <PowerSettingsNewRoundedIcon />
-                    </ListItemIcon>
-                    <ListItemText primary={'登录'} />
-                  </ListItem>
+                  <div>
+                    <ListItem
+                      button
+                      component={RouterLink}
+                      to='/login'
+                      key='drawerLogin'
+                    >
+                      <ListItemIcon>
+                        <PowerSettingsNewRoundedIcon />
+                      </ListItemIcon>
+                      <ListItemText primary='登录' />
+                    </ListItem>
+                    <ListItem
+                      button
+                      component={RouterLink}
+                      to='register'
+                      key='drawerRegister'
+                    >
+                      <ListItemIcon>
+                        <PersonAddRoundedIcon />
+                      </ListItemIcon>
+                      <ListItemText primary='注册' />
+                    </ListItem>
+                  </div>
                 )}
               </List>
               <Menu

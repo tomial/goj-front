@@ -1,4 +1,4 @@
-const switchTab = (state = 0, action) => {
+const switchTab = (state = 'problems', action) => {
   switch (action.type) {
     case 'SWITCH_TAB':
       return action.value
