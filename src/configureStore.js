@@ -6,6 +6,8 @@ const configureStore = () => {
   // const persistedState = loadState()
   const store = createStore(gojApp)
 
+  store.getState().loggedIn = window.localStorage.getItem('loggedIn')
+
   return store
 }
 

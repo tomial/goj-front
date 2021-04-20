@@ -29,9 +29,9 @@ import ForumRoundedIcon from '@material-ui/icons/ForumRounded'
 import MenuBookRoundedIcon from '@material-ui/icons/MenuBookRounded'
 import PowerSettingsNewRoundedIcon from '@material-ui/icons/PowerSettingsNewRounded'
 import PersonAddRoundedIcon from '@material-ui/icons/PersonAddRounded'
-import { logIn, logOut, switchTab } from '../actions'
+import { logIn, logOut } from '../actions'
 import { connect } from 'react-redux'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useLocation } from 'react-router-dom'
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -51,9 +51,11 @@ const useStyles = makeStyles(theme => ({
 
 const NavBar = ({ loggedIn, dispatch }) => {
   const classes = useStyles()
+  const location = useLocation()
+  let path = location.pathname
   const [drawerAnchor, setDrawerAnchor] = useState(null)
   const [userMenuAnchor, setUserMenuAnchor] = useState(null)
-  const [tabSelected, setTabSelected] = useState('problems')
+  const [tabSelected, setTabSelected] = useState(path.slice(1, path.length))
 
   // 点击用户菜单
   const handleUserButtonClick = event => {
@@ -71,7 +73,11 @@ const NavBar = ({ loggedIn, dispatch }) => {
   }
 
   const handleTabSelected = (event, newValue) => {
-    setTabSelected(newValue)
+    if (['problems', 'solutions', 'community'].includes(newValue)) {
+      setTabSelected(newValue)
+    } else {
+      setTabSelected(null)
+    }
   }
 
   const toggleDrawer = open => event => {
@@ -95,7 +101,7 @@ const NavBar = ({ loggedIn, dispatch }) => {
         <Box className={classes.title}>
           <Typography
             variant='h6'
-            onClick={() => handleTabSelected(null, null)}
+            onClick={() => handleTabSelected(null, 'index')}
           >
             <Link
               component={RouterLink}
@@ -140,12 +146,11 @@ const NavBar = ({ loggedIn, dispatch }) => {
             className={classes.userButton}
           >
             <ButtonGroup color='primary' size='large' variant='contained'>
-              <Button
-                onClick={() => {
-                  dispatch(logIn)
-                }}
-              >
+              <Button>
                 <Link
+                  onClick={() => {
+                    dispatch(logIn)
+                  }}
                   component={RouterLink}
                   to='/login'
                   color='inherit'
@@ -330,7 +335,6 @@ const NavBar = ({ loggedIn, dispatch }) => {
 const mapStateToProps = state => {
   return {
     loggedIn: state.loggedIn,
-    tabSelected: state.tabSelected,
   }
 }
 

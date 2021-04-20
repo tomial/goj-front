@@ -1,6 +1,9 @@
-import Typography from '@material-ui/core/Typography'
 import { Box } from '@material-ui/core'
 import { connect } from 'react-redux'
+import Problems from './problem/problems.js'
+import { Route, useLocation } from 'react-router'
+import Content from './problem/content.js'
+import Submission from './problem/submission.js'
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props
@@ -12,35 +15,59 @@ function TabPanel(props) {
       id={`nav-tabpanel-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box p={3}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
+      {value === index && <Box p={3}>{children}</Box>}
     </div>
   )
 }
 
-const Tab = ({ tabSelected, dispatch }) => {
+const Tab = ({ dispatch }) => {
+  const location = useLocation()
+  let path = location.pathname
+  const id = path.split('/').pop()
+  console.log(path)
+
   return (
     <div>
-      <TabPanel value={tabSelected} index={0}>
-        题目
-      </TabPanel>
-      <TabPanel value={tabSelected} index={1}>
-        社区
-      </TabPanel>
-      <TabPanel value={tabSelected} index={2}>
-        题解
-      </TabPanel>
+      <Route path='/'>
+        <TabPanel value={path} index={'/'}>
+          Welcome to GOJ!
+        </TabPanel>
+      </Route>
+
+      <Route path='/problems/content/:id'>
+        <TabPanel value={path} index={'/problems/content/' + id}>
+          <Content />
+        </TabPanel>
+      </Route>
+
+      <Route path='/problems/content/submission/:id'>
+        <TabPanel value={path} index={'/problems/content/submission/' + id}>
+          <Submission />
+        </TabPanel>
+      </Route>
+
+      <Route path='/problems'>
+        <TabPanel value={path} index={'/problems'}>
+          <Problems />
+        </TabPanel>
+      </Route>
+
+      <Route path='/community'>
+        <TabPanel value={path} index={'/community'}>
+          建设中...
+        </TabPanel>
+      </Route>
+      <Route path='/solutions'>
+        <TabPanel value={path} index={'/solutions'}>
+          建设中...
+        </TabPanel>
+      </Route>
     </div>
   )
 }
 
 const mapStateToProps = state => {
-  return {
-    tabSelected: state.tabSelected,
-  }
+  return {}
 }
 
 export default connect(mapStateToProps)(Tab)

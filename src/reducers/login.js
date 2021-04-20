@@ -1,9 +1,13 @@
-const login = (state = false, action) => {
+const login = (state = window.localStorage.getItem('loggedIn'), action) => {
   switch (action.type) {
-    case 'LOGIN':
+    case 'LOGIN': {
+      window.localStorage.setItem('loggedIn', true)
       return true
-    case 'LOGOUT':
+    }
+    case 'LOGOUT': {
+      window.localStorage.setItem('loggedIn', false)
       return false
+    }
     default:
       return state
   }

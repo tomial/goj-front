@@ -1,7 +1,12 @@
 import { Provider } from 'react-redux'
 import NavBar from './components/navbar'
 import Tab from './components/tab'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import {
+  BrowserRouter as Router,
+  Redirect,
+  Route,
+  Switch,
+} from 'react-router-dom'
 import configureStore from './configureStore'
 import Login from './components/login'
 import SignUp from './components/signup'
@@ -14,11 +19,11 @@ export default function App() {
       <Router>
         <Switch>
           <Route path='/login'>
-            <Login />
+            {store.getState().loggedIn ? <Redirect to='/' /> : <Login />}
           </Route>
-          <Router path='/register'>
-            <SignUp />
-          </Router>
+          <Route path='/register'>
+            {store.getState().loggedIn ? <Redirect to='/' /> : <SignUp />}
+          </Route>
 
           <Route path='/'>
             <NavBar />
