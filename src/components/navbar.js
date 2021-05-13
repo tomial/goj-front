@@ -29,8 +29,8 @@ import ForumRoundedIcon from '@material-ui/icons/ForumRounded'
 import MenuBookRoundedIcon from '@material-ui/icons/MenuBookRounded'
 import PowerSettingsNewRoundedIcon from '@material-ui/icons/PowerSettingsNewRounded'
 import PersonAddRoundedIcon from '@material-ui/icons/PersonAddRounded'
-import { logIn, logOut } from '../actions'
-import { connect } from 'react-redux'
+import { logOut, removeUID, removeUsername } from '../actions'
+import { connect, useStore } from 'react-redux'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 
 const useStyles = makeStyles(theme => ({
@@ -44,14 +44,16 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
   },
   userButton: {
+    display: 'flex',
     flexGrow: 1,
     justifyContent: 'flex-end',
   },
 }))
 
-const NavBar = ({ loggedIn, dispatch }) => {
+const NavBar = ({ dispatch }) => {
   const classes = useStyles()
   const location = useLocation()
+  const store = useStore()
   let path = location.pathname
   const [drawerAnchor, setDrawerAnchor] = useState(null)
   const [userMenuAnchor, setUserMenuAnchor] = useState(null)
@@ -70,6 +72,8 @@ const NavBar = ({ loggedIn, dispatch }) => {
   const handleUserLogOut = () => {
     handleUserMenuClose()
     dispatch(logOut)
+    dispatch(removeUsername)
+    dispatch(removeUID)
   }
 
   const handleTabSelected = (event, newValue) => {
@@ -141,62 +145,34 @@ const NavBar = ({ loggedIn, dispatch }) => {
             </Tabs>
           </Box>
 
-          <Box
-            display={loggedIn ? 'none' : 'flex'}
-            className={classes.userButton}
-          >
-            <ButtonGroup color='primary' size='large' variant='contained'>
-              <Button>
-                <Link
-                  onClick={() => {
-                    dispatch(logIn)
-                  }}
-                  component={RouterLink}
-                  to='/login'
+          {!store.getState().loggedIn ? (
+            <LogInButtonGroup className={classes.userButton} />
+          ) : (
+            <Box className={classes.userButton}>
+              <Box>
+                <Button
+                  onClick={handleUserButtonClick}
                   color='inherit'
-                  underline='none'
+                  size='large'
+                  startIcon={<AccountCircleIcon />}
                 >
-                  登录
-                </Link>
-              </Button>
-              <Button>
-                <Link
-                  component={RouterLink}
-                  to='/register'
-                  color='inherit'
-                  underline='none'
-                >
-                  注册
-                </Link>
-              </Button>
-            </ButtonGroup>
-          </Box>
-
-          <Box
-            display={loggedIn ? 'flex' : 'none'}
-            className={classes.userButton}
-          >
-            <Button
-              onClick={handleUserButtonClick}
-              color='inherit'
-              size='large'
-              startIcon={<AccountCircleIcon />}
-            >
-              Mudai
-            </Button>
-          </Box>
-          <Menu
-            id='simple-menu'
-            anchorEl={userMenuAnchor}
-            keepMounted
-            open={Boolean(userMenuAnchor)}
-            onClose={handleUserMenuClose}
-          >
-            <MenuItem onClick={handleUserMenuClose}>个人信息</MenuItem>
-            <MenuItem onClick={handleUserMenuClose}>账号设置</MenuItem>
-            <Divider />
-            <MenuItem onClick={handleUserLogOut}>退出</MenuItem>
-          </Menu>
+                  {store.getState().username}
+                </Button>
+              </Box>
+              <Menu
+                id='simple-menu'
+                anchorEl={userMenuAnchor}
+                keepMounted
+                open={Boolean(userMenuAnchor)}
+                onClose={handleUserMenuClose}
+              >
+                <MenuItem onClick={handleUserMenuClose}>个人信息</MenuItem>
+                <MenuItem onClick={handleUserMenuClose}>账号设置</MenuItem>
+                <Divider />
+                <MenuItem onClick={handleUserLogOut}>退出</MenuItem>
+              </Menu>
+            </Box>
+          )}
         </Hidden>
 
         <Hidden smUp>
@@ -274,7 +250,7 @@ const NavBar = ({ loggedIn, dispatch }) => {
                 </ListItem>
                 <Divider />
 
-                {loggedIn ? (
+                {store.getState().loggedIn ? (
                   <ListItem
                     button
                     key='drawerUser'
@@ -283,7 +259,7 @@ const NavBar = ({ loggedIn, dispatch }) => {
                     <ListItemIcon>
                       <AccountCircleIcon />
                     </ListItemIcon>
-                    <ListItemText primary={'用户'} />
+                    <ListItemText primary={store.getState().username} />
                   </ListItem>
                 ) : (
                   <div>
@@ -329,6 +305,35 @@ const NavBar = ({ loggedIn, dispatch }) => {
         </Hidden>
       </Toolbar>
     </AppBar>
+  )
+}
+
+const LogInButtonGroup = ({ className }) => {
+  return (
+    <Box className={className}>
+      <ButtonGroup color='primary' size='large' variant='contained'>
+        <Button>
+          <Link
+            component={RouterLink}
+            to='/login'
+            color='inherit'
+            underline='none'
+          >
+            登录
+          </Link>
+        </Button>
+        <Button>
+          <Link
+            component={RouterLink}
+            to='/register'
+            color='inherit'
+            underline='none'
+          >
+            注册
+          </Link>
+        </Button>
+      </ButtonGroup>
+    </Box>
   )
 }
 

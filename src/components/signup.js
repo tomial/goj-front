@@ -15,6 +15,8 @@ import {
   TextField,
   Typography,
 } from '@material-ui/core'
+import { useDispatch } from 'react-redux'
+import setuid from '../reducers/setuid'
 
 function Copyright() {
   return (
@@ -55,12 +57,14 @@ const useStyles = makeStyles(theme => ({
 
 export default function SignUp() {
   const classes = useStyles()
+  const dispatch = useDispatch()
+
   const [username, setUsername] = useState('')
   const [account, setAccount] = useState('')
   const [password, setPassword] = useState('')
   const [email, setEmail] = useState('')
 
-  const [response, setResponse] = useState(null)
+  // const [response, setResponse] = useState(null)
   const [successMsg, setSuccessMsg] = useState('')
   const [failureMsg, setFailureMsg] = useState('')
   const [successAlertOpen, setSuccessAlertOpen] = useState(false)
@@ -87,33 +91,46 @@ export default function SignUp() {
   }
 
   const handleSuccessAlertClose = (event, reason) => {
-    if (reason == 'clickaway') {
+    if (reason === 'clickaway') {
       return
     }
     setSuccessAlertOpen(false)
   }
 
   const handleFailureAlertClose = (event, reason) => {
-    if (reason == 'clickaway') {
+    if (reason === 'clickaway') {
       return
     }
     setFailureAlertOpen(false)
   }
 
   const handleSignUp = () => {
-    signUp({ username, account, password, email, setResponse })
+    setFailureAlertOpen(false)
+    setSuccessAlertOpen(false)
 
-    if (response == null || response.status >= 500) {
-      setFailureMsg('服务器错误')
-      setFailureAlertOpen(true)
-    } else if (response.StatusCode === 100) {
-      setSuccessMsg(response.Msg)
-      setSuccessAlertOpen(true)
-    } else if (response.StatusCode > 0 || response.StatusCode === 400) {
-      setFailureMsg(response.Msg)
-      setFailureAlertOpen(true)
-    }
-    setResponse(null)
+    signUp({ username, account, password, email })
+      .then(response => {
+        if (response.data.StatusCode === 100) {
+          setSuccessMsg(response.data.Msg)
+          setSuccessAlertOpen(true)
+          dispatch({ type: 'SETUID', value: response.data.Uid })
+        }
+      })
+      .catch(error => {
+        if (error.message === 'Network Error') {
+          setFailureMsg('发送请求时发生错误：' + error.message)
+          setFailureAlertOpen(true)
+        } else if (error.response.status === 500) {
+          setFailureMsg('服务器错误：' + error.response.data.Msg)
+          setFailureAlertOpen(true)
+        } else if (
+          error.response.status === 400 ||
+          error.response.data.StatusCode > 0
+        ) {
+          setFailureMsg('请求错误：' + error.response.data.Msg)
+          setFailureAlertOpen(true)
+        }
+      })
   }
 
   return (

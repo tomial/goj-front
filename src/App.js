@@ -10,6 +10,7 @@ import {
 import configureStore from './configureStore'
 import Login from './components/login'
 import SignUp from './components/signup'
+import AddProblem from './components/problem/add'
 
 const store = configureStore()
 
@@ -19,10 +20,14 @@ export default function App() {
       <Router>
         <Switch>
           <Route path='/login'>
-            {store.getState().loggedIn ? <Redirect to='/' /> : <Login />}
+            <Login />
           </Route>
           <Route path='/register'>
-            {store.getState().loggedIn ? <Redirect to='/' /> : <SignUp />}
+            <SignUp />
+          </Route>
+
+          <Route path='/problems/add'>
+            <AddProblem />
           </Route>
 
           <Route path='/'>

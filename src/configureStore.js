@@ -1,12 +1,22 @@
 import { createStore } from 'redux'
 import gojApp from './reducers'
+import { loadState, saveState } from './localStorage'
+import throttle from 'lodash/throttle'
 
 const configureStore = () => {
-  // TODO Persist state to localStorage
-  // const persistedState = loadState()
-  const store = createStore(gojApp)
+  const persistedState = loadState()
+  const store = createStore(gojApp, persistedState)
 
-  store.getState().loggedIn = window.localStorage.getItem('loggedIn')
+  store.subscribe(
+    throttle(() => {
+      saveState({
+        uid: store.getState().uid,
+        username: store.getState().username,
+        loggedIn: store.getState().loggedIn,
+      })
+    }),
+    2000
+  )
 
   return store
 }
