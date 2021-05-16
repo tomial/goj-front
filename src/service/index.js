@@ -4,7 +4,7 @@ const postInstance = axios.create({
   method: 'post',
   baseURL: 'http://localhost:8080',
   withCredentials: true,
-  timeout: 1000,
+  timeout: 10000,
   headers: { 'accept-language': 'zh-CN' },
 })
 
@@ -12,7 +12,7 @@ const getInstance = axios.create({
   method: 'get',
   baseURL: 'http://localhost:8080',
   withCredentials: true,
-  timeout: 1000,
+  timeout: 3000,
   headers: { 'accept-language': 'zh-CN' },
 })
 
@@ -32,16 +32,30 @@ export function login({ account, password }) {
   })
 }
 
-export function retriveUsername() {
-  let username = null
-  getInstance.get('user/username').then(function (response) {
-    username = response.data
-  })
-  return username
+export function getRole() {
+  return getInstance.get('/user/role')
 }
 
 export function submitProblem(problem) {
-  postInstance.post('/problems/add', problem).then(response => {
-    console.log('成功添加')
+  return postInstance.post('/problems/add', problem)
+}
+
+export function fetchProblemList(page, num) {
+  return getInstance.get(`/problems?page=${page}&num=${num}`)
+}
+
+export function getProblemContent(id) {
+  return getInstance.get(`/problems/${id}`)
+}
+
+export function submitCode(pid, code, language) {
+  return postInstance.post(`/problems/judge`, {
+    PID: pid,
+    Code: code,
+    Language: language,
   })
+}
+
+export function getSubmissions(pid) {
+  return getInstance.get(`/problems/submission/${pid}`)
 }

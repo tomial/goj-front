@@ -2,6 +2,11 @@ import {
   Box,
   Button,
   ButtonGroup,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   Link,
   List,
@@ -12,14 +17,20 @@ import {
   MenuItem,
   makeStyles,
   Paper,
+  Snackbar,
   Typography,
+  LinearProgress,
+  IconButton,
 } from '@material-ui/core'
+import CloseIcon from '@material-ui/icons/Close'
+import Alert from '../alert'
 import marked from 'marked'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import MonacoEditor from 'react-monaco-editor'
-import { Redirect, useLocation, useParams } from 'react-router'
+import { useLocation, useParams } from 'react-router'
 import { Link as RouterLink } from 'react-router-dom'
 import { connect } from 'react-redux'
+import { getProblemContent, submitCode } from '../../service/index'
 
 const useStyles = makeStyles(theme => ({
   description: {
@@ -40,14 +51,19 @@ const getSubmissionPath = (path, id) => {
 }
 
 const getMarkdownText = raw => {
-  let text = marked(`
-  # Marked\n\nRendered by **marked**.\n\n# Test\n\n
-  # Test\n\n# Test\n\n # Test
-  `)
+  let text = marked(raw)
   return { __html: text }
 }
 
-const limit = ['难度', '时空限制', '总通过数量', '总尝试数']
+const resultMsg = {
+  0: '提交通过',
+  1: '答案错误',
+  2: '运行时出现错误',
+  3: '编译错误',
+  4: '未知错误',
+  5: '超过运行时间限制',
+  6: '超过运行内存限制',
+}
 
 function Content({ loggedIn }) {
   const classes = useStyles()
@@ -55,9 +71,50 @@ function Content({ loggedIn }) {
   const path = location.pathname
   const { id } = useParams()
   const submissionPath = getSubmissionPath(path, id)
+
   const [code, setCode] = useState('')
+
+  const [loading, setLoading] = useState(false)
+
   const [anchorEl, setAnchorEl] = useState(null)
-  const [language, setLanguage] = useState('go')
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [language, setLanguage] = useState('cpp')
+
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [difficulty, setDifficulty] = useState('简单')
+  const [rlimit, setRlimit] = useState(10)
+  const [tlimit, setTlimit] = useState(1000)
+
+  const [failureMsg, setFailureMsg] = useState('')
+  const [failureAlertOpen, setFailureAlertOpen] = useState(false)
+
+  const [result, setResult] = useState(null)
+
+  useEffect(() => {
+    getProblemContent(id)
+      .then(response => {
+        setName(response.data.Name)
+        setDescription(response.data.Description)
+        setDifficulty(response.data.Difficulty)
+        setRlimit(response.data.Rlimit)
+        setTlimit(response.data.Tlimit)
+      })
+      .catch(error => {
+        console.log(error.status)
+      })
+  }, [id])
+
+  const handleFailureAlertClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setFailureAlertOpen(false)
+  }
+
+  const handleDialogClose = event => {
+    setDialogOpen(false)
+  }
 
   const onMonacoChange = (newValue, e) => {
     setCode(newValue)
@@ -75,10 +132,27 @@ function Content({ loggedIn }) {
   }
 
   const handleSubmit = () => {
-    if (loggedIn) {
-    } else {
-      ;<Redirect to='/login' />
-    }
+    setLoading(true)
+    submitCode(Number(id), code, language)
+      .then(response => {
+        setLoading(false)
+
+        setResult({
+          code: response.data.Code,
+          msg: response.data.Msg,
+          tusage: response.data.Tusage,
+          rusage: response.data.Rusage,
+        })
+        console.log(response.data.Msg.split())
+
+        setDialogOpen(true) // 显示提示
+      })
+      .catch(error => {
+        setLoading(false)
+        console.log(error === null)
+        setFailureMsg('提交失败')
+        setFailureAlertOpen(true)
+      })
   }
 
   const monacoOptions = {
@@ -95,7 +169,9 @@ function Content({ loggedIn }) {
     <Box>
       <Paper>
         <Typography variant='h3' gutterBottom>
-          <Box m={2}>#{id} A + B</Box>
+          <Box m={2}>
+            #{id} {name}
+          </Box>
           <Divider />
         </Typography>
 
@@ -130,22 +206,26 @@ function Content({ loggedIn }) {
           <Box className={classes.description} m={2} minHeight={300}>
             <Typography variant='subtitle1'>题目描述</Typography>
             <Box>
-              <div dangerouslySetInnerHTML={getMarkdownText()}></div>
+              <div dangerouslySetInnerHTML={getMarkdownText(description)}></div>
             </Box>
           </Box>
 
           <Box m={2} minHeight={300} className={classes.limit}>
             <List>
-              {limit.map(item => {
-                return (
-                  <div>
-                    <ListItem divider alignItems='center'>
-                      <ListItemText primary={item} />
-                      <ListSubheader>Test</ListSubheader>
-                    </ListItem>
-                  </div>
-                )
-              })}
+              <ListItem divider alignItems='center'>
+                <ListItemText primary={'难度'} />
+                <ListSubheader>{difficulty}</ListSubheader>
+              </ListItem>
+
+              <ListItem divider alignItems='center'>
+                <ListItemText primary={'时间限制'} />
+                <ListSubheader>{tlimit}ms</ListSubheader>
+              </ListItem>
+
+              <ListItem divider alignItems='center'>
+                <ListItemText primary={'内存限制'} />
+                <ListSubheader>{rlimit}MB</ListSubheader>
+              </ListItem>
             </List>
           </Box>
         </Box>
@@ -170,6 +250,7 @@ function Content({ loggedIn }) {
 
         <Box height={400} border={1} borderRadius='borderRadius' m={2}>
           <MonacoEditor
+            theme='vs-dark'
             options={monacoOptions}
             language={language}
             value={code}
@@ -186,21 +267,71 @@ function Content({ loggedIn }) {
               重置
             </Button>
           </Box>
-          <Button color='primary' variant='outlined'>
-            {!loggedIn ? (
+          {!loggedIn ? (
+            <Button color='primary' variant='outlined'>
               <Link
                 component={RouterLink}
                 to='/login'
                 color='inherit'
                 underline='none'
               >
-                提交
+                登陆
               </Link>
-            ) : (
-              '登陆'
-            )}
-          </Button>
+            </Button>
+          ) : (
+            <Button color='primary' variant='outlined' onClick={handleSubmit}>
+              提交
+            </Button>
+          )}
         </Box>
+        {loading ? <LinearProgress /> : ''}
+
+        <Box>
+          <Snackbar
+            open={failureAlertOpen}
+            autoHideDuration={1000}
+            onClose={handleFailureAlertClose}
+          >
+            <Alert onClose={handleFailureAlertClose} severity='error'>
+              {failureMsg}
+            </Alert>
+          </Snackbar>
+        </Box>
+
+        {result === null ? (
+          ''
+        ) : (
+          <Box>
+            <Dialog open={dialogOpen} onClose={handleDialogClose}>
+              <DialogTitle>运行结果：{resultMsg[result.code]}</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  {result.code === 0 ? (
+                    <Box>
+                      <Typography>运行时间：{result.tusage}ms</Typography>
+                      <Typography>运行内存：{result.rusage}KB</Typography>
+                    </Box>
+                  ) : (
+                    <Box>
+                      <Typography variant='h6' color='error'>
+                        错误信息：
+                      </Typography>
+                      {result.msg.split(/\r?\n/).map(item => (
+                        <Typography noWrap>{item}</Typography>
+                      ))}
+                    </Box>
+                  )}
+                </DialogContentText>
+              </DialogContent>
+
+              <DialogActions>
+                <IconButton onClick={handleDialogClose}>
+                  <CloseIcon />
+                </IconButton>
+              </DialogActions>
+            </Dialog>
+          </Box>
+        )}
       </Paper>
     </Box>
   )

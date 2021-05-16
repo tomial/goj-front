@@ -18,29 +18,61 @@ import {
 } from '@material-ui/core'
 import { useLocation, useParams } from 'react-router'
 import { Link as RouterLink } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getSubmissions } from '../../service'
 
-const useStyles = makeStyles(theme => { })
+const useStyles = makeStyles(theme => {})
 
-function createData(id, createTime, status, costTime, language) {
-  return { id, createTime, status, costTime, language }
+function createData(id, createTime, status, tusage, rusage, language) {
+  return { id, createTime, status, tusage, rusage, language }
 }
 
-const submissions = [
-  createData(1, '6个月前', 'COMPILE ERROR', '55ms', 'C'),
-  createData(2, '6个月前', 'ACCEPTED', '72ms', 'C++'),
-  createData(3, '6个月前', 'ACCEPTED', '472ms', 'Go'),
-]
+const langCode = {
+  0: 'C',
+  1: 'C++',
+  2: 'Go',
+}
+
+const resultMsg = {
+  0: '提交通过',
+  1: '答案错误',
+  2: '运行时出现错误',
+  3: '编译错误',
+  4: '未知错误',
+  5: '超过运行时间限制',
+  6: '超过运行内存限制',
+}
+
+let rid = 0
 
 export default function Submission() {
   const classes = useStyles()
   const location = useLocation()
   const path = location.pathname
   const [page, setPage] = useState(0)
+  const [submissions, setSubmission] = useState([])
+
   const { id } = useParams()
   const handleChangePage = (event, newPage) => {
     setPage(newPage)
   }
+
+  useEffect(() => {
+    getSubmissions(id).then(response => {
+      setSubmission(
+        response.data.map(r => {
+          return createData(
+            rid,
+            r.CreatedAt,
+            resultMsg[r.Result],
+            r.Tusage,
+            r.Rusage,
+            langCode[r.Language]
+          )
+        })
+      )
+    })
+  }, [id])
 
   return (
     <Box>
@@ -86,18 +118,23 @@ export default function Submission() {
               <TableHead>
                 <TableRow>
                   <TableCell align='left'>提交时间</TableCell>
+                  <TableCell align='left'>语言</TableCell>
                   <TableCell aligh='left'>状态</TableCell>
                   <TableCell align='left'>运行时间</TableCell>
-                  <TableCell align='left'>语言</TableCell>
+                  <TableCell align='left'>消耗内存</TableCell>
                 </TableRow>
               </TableHead>
+
               <TableBody>
                 {submissions.slice(page * 5, page * 5 + 5).map(record => (
                   <TableRow key={record.id}>
-                    <TableCell align='left'>{record.id}</TableCell>
-                    <TableCell component='th' scope='row'>{record.status}</TableCell>
                     <TableCell align='left'>{record.createTime}</TableCell>
-                    <TableCell align='left'>{record.language}</TableCell>
+                    <TableCell component='th' scope='row'>
+                      {record.language}
+                    </TableCell>
+                    <TableCell align='left'>{record.status}</TableCell>
+                    <TableCell align='left'>{record.tusage}</TableCell>
+                    <TableCell align='left'>{record.rusage}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

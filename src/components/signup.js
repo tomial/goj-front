@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined'
-import MuiAlert from '@material-ui/lab/Alert'
+import Alert from './alert'
 import { makeStyles } from '@material-ui/core/styles'
 import { signUp } from '../service'
 import {
@@ -15,8 +15,8 @@ import {
   TextField,
   Typography,
 } from '@material-ui/core'
-import { useDispatch } from 'react-redux'
-import setuid from '../reducers/setuid'
+import { Redirect } from 'react-router-dom'
+import { useDispatch, useStore } from 'react-redux'
 
 function Copyright() {
   return (
@@ -29,10 +29,6 @@ function Copyright() {
       {'.'}
     </Typography>
   )
-}
-
-function Alert(props) {
-  return <MuiAlert elevation={6} variant='filled' {...props} />
 }
 
 const useStyles = makeStyles(theme => ({
@@ -57,6 +53,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function SignUp() {
   const classes = useStyles()
+  const store = useStore()
   const dispatch = useDispatch()
 
   const [username, setUsername] = useState('')
@@ -133,108 +130,112 @@ export default function SignUp() {
       })
   }
 
-  return (
-    <Container component='main' maxWidth='xs'>
-      <CssBaseline />
-      <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
-          <LockOutlinedIcon />
-        </Avatar>
-        <Typography component='h1' variant='h5'>
-          注册
-        </Typography>
-        <form className={classes.form} noValidate>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                onChange={onUsernameChange}
-                variant='outlined'
-                required
-                fullWidth
-                id='username'
-                label='用户名'
-                name='username'
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                onChange={onAccountChange}
-                variant='outlined'
-                required
-                fullWidth
-                id='account'
-                label='帐号'
-                name='account'
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                onChange={onEmailChange}
-                variant='outlined'
-                required
-                fullWidth
-                id='email'
-                label='邮箱'
-                name='email'
-                autoComplete='email'
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                onChange={onPasswordChange}
-                variant='outlined'
-                required
-                fullWidth
-                name='password'
-                label='密码'
-                type='password'
-                id='password'
-                autoComplete='current-password'
-              />
-            </Grid>
-          </Grid>
-          <Button
-            fullWidth
-            variant='contained'
-            color='primary'
-            className={classes.submit}
-            onClick={handleSignUp}
-          >
+  if (!store.getState().loggedIn) {
+    return (
+      <Container component='main' maxWidth='xs'>
+        <CssBaseline />
+        <div className={classes.paper}>
+          <Avatar className={classes.avatar}>
+            <LockOutlinedIcon />
+          </Avatar>
+          <Typography component='h1' variant='h5'>
             注册
-          </Button>
-
-          <Snackbar
-            open={successAlertOpen}
-            autoHideDuration={3000}
-            onClose={handleSuccessAlertClose}
-          >
-            <Alert onClose={handleSuccessAlertClose} severity='success'>
-              {successMsg}
-            </Alert>
-          </Snackbar>
-
-          <Snackbar
-            open={failureAlertOpen}
-            autoHideDuration={3000}
-            onClose={handleFailureAlertClose}
-          >
-            <Alert onClose={handleFailureAlertClose} severity='error'>
-              {failureMsg}
-            </Alert>
-          </Snackbar>
-
-          <Grid container justify='flex-end'>
-            <Grid item>
-              <Link href='/login' variant='body2'>
-                登陆
-              </Link>
+          </Typography>
+          <form className={classes.form} noValidate>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  onChange={onUsernameChange}
+                  variant='outlined'
+                  required
+                  fullWidth
+                  id='username'
+                  label='用户名'
+                  name='username'
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  onChange={onAccountChange}
+                  variant='outlined'
+                  required
+                  fullWidth
+                  id='account'
+                  label='帐号'
+                  name='account'
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  onChange={onEmailChange}
+                  variant='outlined'
+                  required
+                  fullWidth
+                  id='email'
+                  label='邮箱'
+                  name='email'
+                  autoComplete='email'
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  onChange={onPasswordChange}
+                  variant='outlined'
+                  required
+                  fullWidth
+                  name='password'
+                  label='密码'
+                  type='password'
+                  id='password'
+                  autoComplete='current-password'
+                />
+              </Grid>
             </Grid>
-          </Grid>
-        </form>
-      </div>
-      <Box mt={5}>
-        <Copyright />
-      </Box>
-    </Container>
-  )
+            <Button
+              fullWidth
+              variant='contained'
+              color='primary'
+              className={classes.submit}
+              onClick={handleSignUp}
+            >
+              注册
+            </Button>
+
+            <Snackbar
+              open={successAlertOpen}
+              autoHideDuration={3000}
+              onClose={handleSuccessAlertClose}
+            >
+              <Alert onClose={handleSuccessAlertClose} severity='success'>
+                {successMsg}
+              </Alert>
+            </Snackbar>
+
+            <Snackbar
+              open={failureAlertOpen}
+              autoHideDuration={3000}
+              onClose={handleFailureAlertClose}
+            >
+              <Alert onClose={handleFailureAlertClose} severity='error'>
+                {failureMsg}
+              </Alert>
+            </Snackbar>
+
+            <Grid container justify='flex-end'>
+              <Grid item>
+                <Link href='/login' variant='body2'>
+                  登陆
+                </Link>
+              </Grid>
+            </Grid>
+          </form>
+        </div>
+        <Box mt={5}>
+          <Copyright />
+        </Box>
+      </Container>
+    )
+  } else {
+    return <Redirect to='/' />
+  }
 }

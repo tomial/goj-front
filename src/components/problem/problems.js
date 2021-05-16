@@ -12,7 +12,8 @@ import {
   TableFooter,
   TablePagination,
 } from '@material-ui/core'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { fetchProblemList } from '../../service/index'
 
 const useStyles = makeStyles({
   table: {
@@ -20,33 +21,22 @@ const useStyles = makeStyles({
   },
 })
 
-function createData(name, id, percent, diff) {
-  return { name, id, percent, diff }
-}
-
-const rows = [
-  createData('A + B', 1, 50.0, '简单'),
-  createData('A + B', 2, 50.0, '简单'),
-  createData('A + B', 3, 50.0, '简单'),
-  createData('A + B', 4, 50.0, '简单'),
-  createData('A + B', 5, 50.0, '简单'),
-  createData('A + B', 6, 50.0, '简单'),
-  createData('A + B', 7, 50.0, '简单'),
-  createData('A + B', 8, 50.0, '简单'),
-  createData('A + B', 9, 50.0, '简单'),
-  createData('A + B', 10, 50.0, '简单'),
-  createData('A + B', 11, 50.0, '简单'),
-  createData('A + B', 12, 50.0, '简单'),
-  createData('A + B', 13, 50.0, '简单'),
-  createData('A + B', 14, 50.0, '简单'),
-  createData('A + B', 15, 50.0, '简单'),
-  createData('A + B', 16, 50.0, '简单'),
-]
-
 export default function BasicTable() {
   const classes = useStyles()
-
+  // const [list, setList] = useState([])
+  const [rows, setRows] = useState([])
   const [page, setPage] = useState(0)
+
+  useEffect(() => {
+    fetchProblemList(page, 10)
+      .then(response => {
+        // setList(JSON.parse(response.data))
+        setRows([...response.data])
+      })
+      .catch(error => {
+        setRows([])
+      })
+  }, [page])
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage)
@@ -59,25 +49,23 @@ export default function BasicTable() {
           <TableRow>
             <TableCell align='left'>#</TableCell>
             <TableCell>标题</TableCell>
-            <TableCell align='left'>通过率</TableCell>
             <TableCell align='left'>难度</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.slice(page * 10, page * 10 + 10).map(row => (
-            <TableRow key={row.id}>
-              <TableCell align='left'>{row.id}</TableCell>
+          {rows.map(row => (
+            <TableRow key={row.ID}>
+              <TableCell align='left'>{row.ID}</TableCell>
               <TableCell component='th' scope='row'>
                 <Link
                   component={RouterLink}
-                  to={'problems/content/' + row.id}
+                  to={'problems/content/' + row.ID}
                   underline='none'
                 >
-                  {row.name}
+                  {row.Name}
                 </Link>
               </TableCell>
-              <TableCell align='left'>{row.percent}%</TableCell>
-              <TableCell align='left'>{row.diff}</TableCell>
+              <TableCell align='left'>{row.Difficulty}</TableCell>
             </TableRow>
           ))}
         </TableBody>

@@ -10,11 +10,11 @@ import Link from '@material-ui/core/Link'
 import Grid from '@material-ui/core/Grid'
 import Box from '@material-ui/core/Box'
 import { Snackbar } from '@material-ui/core'
-import MuiAlert from '@material-ui/lab/Alert'
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined'
 import Typography from '@material-ui/core/Typography'
 import { makeStyles } from '@material-ui/core/styles'
 import Container from '@material-ui/core/Container'
+import Alert from './alert'
 import { login } from '../service/index'
 import { Redirect } from 'react-router-dom'
 import { logIn, setUID, setUsername } from '../actions'
@@ -51,10 +51,6 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(3, 0, 2),
   },
 }))
-
-function Alert(props) {
-  return <MuiAlert elevation={6} variant='filled' {...props} />
-}
 
 export default function Login() {
   const classes = useStyles()
@@ -97,11 +93,9 @@ export default function Login() {
       })
       .catch(function (error) {
         if (error.message === 'Network Error') {
-          console.log(error.message)
-        } else if (
-          error.response === undefined ||
-          error.response.status === 400
-        ) {
+          setFailureMsg('网络错误')
+          setFailureAlertOpen(true)
+        } else if (error.response === null || error.response.status === 400) {
           console.log(error.response)
           setFailureMsg('请求错误：' + error.response.data.Msg)
           setFailureAlertOpen(true)
