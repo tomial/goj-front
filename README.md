@@ -1,3 +1,15 @@
-# goj-front
+# GOJ Front
 
-Front end of goj
+Front End of GOJ
+
+Frameworks:
+
+- React
+- MaterialUI
+
+# How To Run:
+
+```shell
+npm install
+npm start
+```

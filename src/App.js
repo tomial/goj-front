@@ -3,7 +3,6 @@ import NavBar from './components/navbar'
 import Tab from './components/tab'
 import {
   BrowserRouter as Router,
-  Redirect,
   Route,
   Switch,
 } from 'react-router-dom'

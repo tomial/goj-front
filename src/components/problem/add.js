@@ -6,7 +6,6 @@ import {
   Button,
   Typography,
   Divider,
-  makeStyles,
   Paper,
   IconButton,
   RadioGroup,
@@ -27,8 +26,6 @@ const monacoOptions = {
   fontSize: 18,
   automaticLayout: true,
 }
-
-const useStyles = makeStyles(theme => ({}))
 
 export default function AddProblem() {
   const [testcases, setTestcases] = useState([])
